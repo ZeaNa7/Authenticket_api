@@ -1,9 +1,21 @@
-var express = require('express');
-var express_graphql = require('express-graphql');
-var app = express();
+var Express = require('express');
 const { Client } = require("pg")
-const dotenv = require("dotenv")
+const BodyParser = require("body-parser");
+const cors = require("cors");
+const dotenv = require("dotenv");
 dotenv.config()
+const { graphqlHTTP } = require('express-graphql');
+
+const app = Express();
+app.use(BodyParser.text({ type: "text/plain" }));
+
+app.use(cors({
+  /** Use this when web frontend / production **/
+  // origin: 'https://example.com',
+
+  /** Use this when local frontend / development **/
+  origin: "http://localhost:8000",
+}));
 
 const connectDb = async () => {
       try {
@@ -16,7 +28,7 @@ const connectDb = async () => {
           })
    
           await client.connect()
-          const res = await client.query('SELECT * FROM events_stored')
+          const res = await client.query('SELECT * FROM "User" WHERE "id_user" = 1');
           console.log(res)
           await client.end()
       } catch (error) {
@@ -25,6 +37,11 @@ const connectDb = async () => {
   }
    
   connectDb()
+
+  app.use('/graphql', graphqlHTTP({
+    // schema,
+    graphiql: true, // Pour activer l'interface GraphiQL (optionnel)
+  }));
   
 
 app.listen(4000, () => console.log('Express GraphQL Server Now Running On localhost:4000/graphql'));
