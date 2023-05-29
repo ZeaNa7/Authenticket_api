@@ -1,0 +1,24 @@
+type Ticket {
+  numTicket: String!
+  event: String
+  isChecked: Boolean
+  nbChecks: Int
+  isValid: Boolean
+}
+
+type Event {
+  id: ID
+  name: String!
+  location : String
+  date: String
+
+}
+
+type Query {
+  getTickets: [Ticket]
+  getEvents: [Event]
+  isTicketExist(numTicket: String!, id_Event: ID!): Boolean
+}
+
+
+

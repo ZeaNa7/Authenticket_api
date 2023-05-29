@@ -1,47 +1,26 @@
-var Express = require('express');
-const { Client } = require("pg")
-const BodyParser = require("body-parser");
-const cors = require("cors");
-const dotenv = require("dotenv");
-dotenv.config()
-const { graphqlHTTP } = require('express-graphql');
+
+import { importSchema } from "graphql-import";
+import { makeExecutableSchema } from "graphql-tools";
+import { graphqlHTTP } from "express-graphql";
+import Express from "express";
+import cors from "cors";
+import resolvers from "./resolvers.js";
 
 const app = Express();
-app.use(BodyParser.text({ type: "text/plain" }));
+const typeDefs = importSchema("./schema.graphql");
+app.use(cors());
+app.use(Express.json());
+const schema = makeExecutableSchema({
+  typeDefs: typeDefs,
+  resolvers,
+});
 
-app.use(cors({
-  /** Use this when web frontend / production **/
-  // origin: 'https://example.com',
+app.use("/graphql", graphqlHTTP({
+  schema,
+  graphiql: true,
+})
+);
 
-  /** Use this when local frontend / development **/
-  origin: "http://localhost:8000",
-}));
-
-const connectDb = async () => {
-      try {
-          const client = new Client({
-              user: process.env.PGUSER,
-              host: process.env.PGHOST,
-              database: process.env.PGDATABASE,
-              password: process.env.PGPASSWORD,
-              port: process.env.PGPORT
-          })
-   
-          await client.connect()
-          const res = await client.query('SELECT * FROM "User" WHERE "id_user" = 1');
-          console.log(res)
-          await client.end()
-      } catch (error) {
-          console.log(error)
-      }
-  }
-   
-  connectDb()
-
-  app.use('/graphql', graphqlHTTP({
-    // schema,
-    graphiql: true, // Pour activer l'interface GraphiQL (optionnel)
-  }));
-  
-
-app.listen(4000, () => console.log('Express GraphQL Server Now Running On localhost:4000/graphql'));
+app.listen(4000, () => {
+  console.log("Express GraphQL Server Now Running On localhost")
+});
