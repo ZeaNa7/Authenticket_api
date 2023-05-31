@@ -7,17 +7,16 @@ type Ticket {
 }
 
 type Event {
-  id: ID
+  id: ID!
   name: String!
   location : String
   date: String
-
 }
 
 type Query {
   getTickets: [Ticket]
   getEvents: [Event]
-  isTicketExist(numTicket: String!, id_Event: ID!): Boolean
+  isTicketExist(numTicket: String!, nameEvent: String!): Boolean
 }
 
 

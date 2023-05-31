@@ -2,14 +2,12 @@ import  client  from "./db.js";
 
 const resolvers = {
   Query: {
+    /* get all tickets */
     getTickets: async () => {
-      console.log("in getTickets");
+      await client.connect();
       try {
-        await client.connect();
         const result = await client.query("SELECT * FROM pool_ticket");
-        console.log("in getTickets TRY res : ", result);
         await client.end();
-        console.log("client connection ended");
         return result.rows.map((row) => {
           return {
             numTicket: row.num_ticket,
@@ -17,46 +15,42 @@ const resolvers = {
           };
         });
       } catch (error) {
-        console.log("in getTickets CATCH ");
-        console.error("Erreur lors de la récupération des tickets :", error);
         throw new Error("Erreur lors de la récupération des tickets");
       }
     },
+
+    /* get all event name */
     getEvents: async () => {
       try {
         await client.connect();
-        console.log("in getEvents");
         const res = await client.query("SELECT * FROM event");
-        console.log("in getEvents TRY res : ", res);
-        res.rows.map((row) => {
-           return {
+        await client.end();
+        return res.rows.map((row) => {
+          return {
             id: row.id_event,
             name: row.name,
-            location : row.location,
+            location: row.location,
             date: row.date,
           };
-        console.log("FINAL CONSOLE LOG : ", events);
-
-        return events;
-      });
+        });
 
       } catch (error) {
-        console.error("Erreur lors de la récupération des événements :", error);
         throw new Error("Erreur lors de la récupération des événements");
       } finally {
         await client.end();
       }
     },
-    isTicketExist: async (_, {numTicket, id_Event }) => {
+
+    /* check if ticket is valid */
+    isTicketExist: async (_, {numTicket, nameEvent }) => {
       try {
         await client.connect();
         const res = await client.query(
-          "SELECT * FROM pool_ticket WHERE num_ticket = $1 AND id_Event = $2", [numTicket, id_Event]
+          "SELECT * FROM pool_ticket JOIN event ON pool_ticket.id_event = event.id_event WHERE pool_ticket.num_ticket = $1 AND event.name = $2", [numTicket, nameEvent]
         );
-        console.log("isTicketExist res : ", res);
-        return res.rows.length > 0;
+        await client.end();
+        return res.rowCount > 0;
       } catch (error) {
-        console.error("Erreur lors de la vérification de l'existence du ticket :", error);
         throw new Error("Erreur lors de la vérification de l'existence du ticket");
       } finally {
         await client.end();
