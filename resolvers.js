@@ -49,7 +49,11 @@ const resolvers = {
           "SELECT * FROM pool_ticket JOIN event ON pool_ticket.id_event = event.id_event WHERE pool_ticket.num_ticket = $1 AND event.name = $2", [numTicket, nameEvent]
         );
         await client.end();
-        return res.rowCount > 0;
+        if (res.rowCount > 0) {
+          return true;
+        } else {
+          return false;
+        }
       } catch (error) {
         throw new Error("Erreur lors de la vérification de l'existence du ticket");
       } finally {
