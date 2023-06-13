@@ -1,13 +1,15 @@
-import  client  from "./db.js";
+import client, { connect, disconnect } from "./db.js";
 
 const resolvers = {
   Query: {
     /* get all tickets */
     getTickets: async () => {
-      await client.connect();
+      console.log('GET TICKETS');
+      const dbClient = await connect();// Utilisez la fonction connect pour obtenir une nouvelle instance de client
+      console.log('CLIENT CONNECTED');
       try {
-        const result = await client.query("SELECT * FROM pool_ticket");
-        await client.end();
+        const result = await dbClient.query("SELECT * FROM pool_ticket");
+        await disconnect(dbClient); // Utilisez la fonction disconnect pour déconnecter le client
         return result.rows.map((row) => {
           return {
             numTicket: row.num_ticket,
@@ -22,9 +24,12 @@ const resolvers = {
     /* get all event name */
     getEvents: async () => {
       try {
-        await client.connect();
-        const res = await client.query("SELECT * FROM event");
-        await client.end();
+        console.log('GET EVENTS');
+        const dbClient = await connect(); 
+        console.log('CLIENT CONNECTED');
+        const res = await dbClient.query("SELECT * FROM event");
+        await disconnect(dbClient); 
+        console.log('EVENT RESPONSE', res.rows);
         return res.rows.map((row) => {
           return {
             id: row.id_event,
@@ -33,22 +38,21 @@ const resolvers = {
             date: row.date,
           };
         });
-
       } catch (error) {
         throw new Error("Erreur lors de la récupération des événements");
-      } finally {
-        await client.end();
       }
     },
 
     /* check if ticket is valid */
     isTicketExist: async (_, {numTicket, nameEvent }) => {
+      console.log('NUM TICKET', numTicket);
       try {
-        await client.connect();
-        const res = await client.query(
+        const dbClient = await connect(); 
+        console.log('CLIENT CONNECTED');
+        const res = await dbClient.query(
           "SELECT * FROM pool_ticket JOIN event ON pool_ticket.id_event = event.id_event WHERE pool_ticket.num_ticket = $1 AND event.name = $2", [numTicket, nameEvent]
         );
-        await client.end();
+        console.log('RES TICKETS ', res.rows);
         if (res.rowCount > 0) {
           return true;
         } else {
@@ -57,7 +61,7 @@ const resolvers = {
       } catch (error) {
         throw new Error("Erreur lors de la vérification de l'existence du ticket");
       } finally {
-        await client.end();
+        await disconnect(dbClient);
       }
     },
   },

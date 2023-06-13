@@ -4,12 +4,28 @@ const { Client } = pkg;
 
 dotenv.config();
 
-const client = new Client({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT,
-});
+const createClient = () => {
+  return new Client({
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
+  });
+};
 
-export default client;
+export const connect = async () => {
+  const client = createClient();
+  await client.connect();
+  return client;
+};
+
+export const disconnect = async (client) => {
+  await client.end();
+};
+
+export default {
+  createClient,
+  connect,
+  disconnect,
+};
