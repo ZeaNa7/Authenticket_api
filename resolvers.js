@@ -45,25 +45,32 @@ const resolvers = {
 
     /* check if ticket is valid */
     isTicketExist: async (_, {numTicket, nameEvent }) => {
+      let dbClient; // Déclarez dbClient en dehors du bloc try
+      console.log('IN IF EXIST TICKET');
       console.log('NUM TICKET', numTicket);
       try {
-        const dbClient = await connect(); 
+        dbClient = await connect(); // Affectez la valeur retournée par connect à dbClient
         console.log('CLIENT CONNECTED');
         const res = await dbClient.query(
           "SELECT * FROM pool_ticket JOIN event ON pool_ticket.id_event = event.id_event WHERE pool_ticket.num_ticket = $1 AND event.name = $2", [numTicket, nameEvent]
         );
         console.log('RES TICKETS ', res.rows);
         if (res.rowCount > 0) {
+          console.log('TICKET EXIST', res.rows)
           return true;
         } else {
+          console.log('TICKET NOT EXIST');
           return false;
         }
       } catch (error) {
         throw new Error("Erreur lors de la vérification de l'existence du ticket");
       } finally {
-        await disconnect(dbClient);
+        if (dbClient) {
+          await disconnect(dbClient);
+        }
       }
     },
+    
   },
 };
 
